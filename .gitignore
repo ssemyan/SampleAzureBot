@@ -1,0 +1,7 @@
+# User-specific files
+bin/
+obj/
+.vs/
+*.user
+.config/
+Properties/PublishProfiles/
