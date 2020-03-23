@@ -5,6 +5,8 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using System.Linq;
 using Microsoft.Bot.Builder.AI.QnA;
+using System;
+using System.IO;
 
 namespace SampleBot.Bots
 {
@@ -74,8 +76,21 @@ namespace SampleBot.Bots
         // This is the welcome message when a new user joins
         protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
         {
+            // Create a media attachment for the welcome message
+            var imagePath = Path.Combine(Environment.CurrentDirectory, @"Resources\logo.png");
+            var imageData = Convert.ToBase64String(File.ReadAllBytes(imagePath));
+            var imageAttachment = new Attachment
+            {
+                Name = @"Resources\logo.png",
+                ContentType = "image/png",
+                ContentUrl = $"data:image/png;base64,{imageData}",
+            };
+            var reply = MessageFactory.Attachment(new List<Attachment>() { imageAttachment });
+
+            // Set the text of the reply
+            reply.Text = "Welcome to the Sample Bot. You can ask free-form questions for the QnA bot or start with suggested actions below. If you tell your name (by typing 'My name is X'), it will be remembered:";
+            
             // Use a suggested action to let the user click on suggested starting places when starting the chat
-            var reply = MessageFactory.Text("Welcome to the Sample Bot. You can ask free-form questions for the QnA bot or start with suggested actions below. If you tell your name (by typing 'My name is X'), it will be remembered:");
             reply.SuggestedActions = new SuggestedActions()
             {
                 Actions = new List<CardAction>()
@@ -87,7 +102,7 @@ namespace SampleBot.Bots
                     new CardAction() { Title = "Why is the sky blue?", Type = ActionTypes.ImBack, Value = "Why is the sky blue?" },
                 },
             };
-        
+
             // Could be multiple people added so respond to each
             foreach (var member in membersAdded)
             {
