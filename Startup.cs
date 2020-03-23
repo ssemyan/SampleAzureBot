@@ -34,6 +34,9 @@ namespace SampleBot
                 Host = Configuration.GetValue<string>($"QnAEndpointHostName")
             });
 
+            // Create the User state using memory for storage
+            services.AddSingleton(new UserState(new MemoryStorage()));
+
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, Bots.SampleBotBot>();
 
