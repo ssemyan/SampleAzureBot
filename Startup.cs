@@ -37,6 +37,9 @@ namespace SampleBot
             // Create the User state using memory for storage
             services.AddSingleton(new UserState(new MemoryStorage()));
 
+            // Create the Bot Config to hold extra data (like the base URL)
+            services.AddSingleton(new BotConfig { BaseUrl = Configuration.GetValue<string>($"BaseUrl") });
+
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, Bots.SampleBotBot>();
 

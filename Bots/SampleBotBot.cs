@@ -12,17 +12,20 @@ namespace SampleBot.Bots
 {
     public class SampleBotBot : ActivityHandler
     {
-        private QnAMaker _sampleBotQnA;
+        private readonly QnAMaker _sampleBotQnA;
+        private readonly BotState _userState;
+        private readonly BotConfig _botConfig;
 
-        private BotState _userState;
-
-        public SampleBotBot(QnAMakerEndpoint endpoint, UserState userState)
+        public SampleBotBot(QnAMakerEndpoint endpoint, UserState userState, BotConfig botConfig)
         {
             // connects to QnA Maker endpoint for each turn
             _sampleBotQnA = new QnAMaker(endpoint);
 
             // set the user state
             _userState = userState;
+
+            // set the config
+            _botConfig = botConfig;
         }
 
         // This handles the incoming message
@@ -76,32 +79,51 @@ namespace SampleBot.Bots
         // This is the welcome message when a new user joins
         protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
         {
-            // Create a media attachment for the welcome message
-            var imagePath = Path.Combine(Environment.CurrentDirectory, @"Resources\logo.png");
-            var imageData = Convert.ToBase64String(File.ReadAllBytes(imagePath));
-            var imageAttachment = new Attachment
+            // Do the welcome as a hero card
+            var card = new HeroCard
             {
-                Name = @"Resources\logo.png",
-                ContentType = "image/png",
-                ContentUrl = $"data:image/png;base64,{imageData}",
-            };
-            var reply = MessageFactory.Attachment(new List<Attachment>() { imageAttachment });
-
-            // Set the text of the reply
-            reply.Text = "Welcome to the Sample Bot. You can ask free-form questions for the QnA bot or start with suggested actions below. If you tell your name (by typing 'My name is X'), it will be remembered:";
-            
-            // Use a suggested action to let the user click on suggested starting places when starting the chat
-            reply.SuggestedActions = new SuggestedActions()
-            {
-                Actions = new List<CardAction>()
+                Title = "Welcome to the Sample Bot",
+                Subtitle = "A sample intended to show how the framework operates",
+                Text = @"You can ask free-form questions for the QnA bot or start with suggested actions below. If you tell your name (by typing 'My name is X'), it will be remembered",
+                Images = new List<CardImage>() { new CardImage(_botConfig.BaseUrl + "/logo.png") },
+                
+                Buttons = new List<CardAction>()
                 {
                     // Do not add the response to the chat history
                     new CardAction() { Title = "What is the sound of one hand clapping?", Type = ActionTypes.PostBack, Value = "clap" },
                     
                     // Add the response to the chat history
                     new CardAction() { Title = "Why is the sky blue?", Type = ActionTypes.ImBack, Value = "Why is the sky blue?" },
-                },
+                }
             };
+            var reply = MessageFactory.Attachment(card.ToAttachment());
+
+            //// Create a media attachment for the welcome message
+            //var imagePath = Path.Combine(Environment.CurrentDirectory, @"Resources\logo.png");
+            //var imageData = Convert.ToBase64String(File.ReadAllBytes(imagePath));
+            //var imageAttachment = new Attachment
+            //{
+            //    Name = @"Resources\logo.png",
+            //    ContentType = "image/png",
+            //    ContentUrl = $"data:image/png;base64,{imageData}",
+            //};
+            //var reply = MessageFactory.Attachment(new List<Attachment>() { imageAttachment });
+
+            //// Set the text of the reply
+            //reply.Text = "Welcome to the Sample Bot. You can ask free-form questions for the QnA bot or start with suggested actions below. If you tell your name (by typing 'My name is X'), it will be remembered:";
+            
+            //// Use a suggested action to let the user click on suggested starting places when starting the chat
+            //reply.SuggestedActions = new SuggestedActions()
+            //{
+            //    Actions = new List<CardAction>()
+            //    {
+            //        // Do not add the response to the chat history
+            //        new CardAction() { Title = "What is the sound of one hand clapping?", Type = ActionTypes.PostBack, Value = "clap" },
+                    
+            //        // Add the response to the chat history
+            //        new CardAction() { Title = "Why is the sky blue?", Type = ActionTypes.ImBack, Value = "Why is the sky blue?" },
+            //    },
+            //};
 
             // Could be multiple people added so respond to each
             foreach (var member in membersAdded)
